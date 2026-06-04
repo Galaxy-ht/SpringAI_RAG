@@ -23,8 +23,6 @@ public class TFIDFRetriever extends AbstractRetriever implements KeywordRetrieve
 
     private boolean indexed = false;
 
-    // TODO: 添加你的数据结构
-
     @Override
     public IndexedDocument index(List<Document> documents) {
         indexed = true;

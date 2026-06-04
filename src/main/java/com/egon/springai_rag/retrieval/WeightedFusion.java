@@ -31,7 +31,7 @@ public class WeightedFusion implements FusionStrategy {
 
     @Override
     public List<ScoredDocument> fuse(List<Document> denseResults, List<ScoredDocument> sparseResults, int topK) {
-        // TODO: 实现加权融合
+        // 实现加权融合
         // 1. 从稠密结果中提取分数（无 score 时用 1.0/(index+1) 近似）
         // 2. 对稠密分数做 min-max 归一化：norm_score = (score - min) / (max - min)
         // 3. 对关键词分数做 min-max 归一化
