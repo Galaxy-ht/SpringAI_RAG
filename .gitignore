@@ -1,0 +1,94 @@
+# ============================================================
+# Standard Spring Boot + Maven + Java .gitignore
+# Based on github/gitignore community templates
+# ============================================================
+
+# ---- Learning Documentation (Ethan's notes, not for release) ----
+BLUEPRINT.md
+CLAUDE.md
+HELP.md
+
+# ---- Auto-generated metadata ----
+META-INF/
+
+# ---- Build Output ----
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ---- Maven ----
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ---- Java ----
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.log
+hs_err_pid*
+replay_pid*
+
+# ---- IDE: IntelliJ IDEA ----
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ---- IDE: Eclipse / STS ----
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+
+# ---- IDE: NetBeans ----
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ---- IDE: VS Code ----
+.vscode/
+*.code-workspace
+
+# ---- OS Generated ----
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# ---- Environment & Secrets ----
+.env
+.env.*
+*.env
+application-local.yml
+application-dev.yml
+
+# ---- Temporary / Misc ----
+*.swp
+*.swo
+*~
+*.bak
+.attach_pid*
