@@ -16,7 +16,7 @@ spring:
       chat:
         model: deepseek-v4-pro
         temperature: 0.3
-        max-tokens: 1024
+        max-tokens: 5000
       embedding:
         api-key: ${DASHSCOPE_API_KEY}
         base-url: ${DASHSCOPE_BASE_URL}
@@ -64,3 +64,11 @@ app:
       enabled: true
     elasticsearch:
       enabled: true
+
+  agent:
+    react:
+      max-iterations: 10
+    reflection:
+      max-retries: 3
+    planner:
+      max-steps: 5
