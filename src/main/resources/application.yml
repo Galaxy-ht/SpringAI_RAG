@@ -72,3 +72,12 @@ app:
       max-retries: 3
     planner:
       max-steps: 5
+    multi:
+      router:
+        fallback-agent: reactAgent
+      chain:
+        default-chain: reactAgent,reflectionAgent
+        max-chain-length: 5
+      orchestrator:
+        max-subtasks: 10
+        max-concurrent-workers: 3

@@ -1,0 +1,240 @@
+package com.egon.springai_rag.agent.orchestrator;
+
+import com.egon.springai_rag.agent.AbstractAgent;
+import com.egon.springai_rag.agent.AdvisorAgent;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
+/**
+ * Orchestrator Agent — 任务分解 + Worker 分配 + 并行执行 + 结果合成。
+ * <p>
+ * 核心流程：
+ * <pre>
+ *   用户提问
+ *     → decompose(任务分解)
+ *     → assignWorkers(Worker 分配)
+ *     → executeSubtasks(并行/顺序执行)
+ *     → synthesize(结果合成)
+ *     → 最终答案
+ * </pre>
+ * <p>
+ * 这是三种多 Agent 模式中最复杂的，对应 LangGraph 的 Supervisor 模式和
+ * CrewAI 的 Hierarchical Process。
+ * <p>
+ * <b>你需要实现的内容：</b>
+ * <ol>
+ *   <li>任务分解(decompose)：让 LLM 将复杂任务拆分为子任务，解析 JSON 输出</li>
+ *   <li>Worker 分配(assignWorkers)：根据 capability 为每个子任务匹配最合适的 Agent</li>
+ *   <li>并行执行(executeSubtasks)：独立子任务并行执行，依赖子任务顺序执行</li>
+ *   <li>结果合成(synthesize)：汇总所有子任务结果，生成最终答案</li>
+ * </ol>
+ * <p>
+ * <b>Decompose Prompt 参考：</b>
+ * <pre>
+ * 你是一个任务分解专家。请将以下任务分解为独立的子任务。
+ *
+ * 原始任务：{task}
+ *
+ * 可用 Worker Agent 及其能力：
+ * - reactAgent: 搜索知识库、调用工具、获取实时信息
+ * - reflectionAgent: 深度推理、质量评估、自我纠错
+ * - planAndExecuteAgent: 多步骤规划、结构化执行
+ *
+ * 输出格式（JSON 数组）：
+ * [
+ *   {"id": 1, "description": "子任务描述", "dependencies": [], "capability": "search"},
+ *   {"id": 2, "description": "子任务描述", "dependencies": [1], "capability": "reason"}
+ * ]
+ *
+ * 要求：
+ * - 每个子任务应清晰、可独立执行
+ * - dependencies 列出必须在此子任务之前完成的子任务 ID
+ * - capability 标注所需能力：search / reason / plan / verify
+ * </pre>
+ */
+@Slf4j
+@Component("orchestratorAgent")
+public class OrchestratorAgent extends AbstractAgent {
+
+    private final Map<String, AdvisorAgent> agents;
+
+    @Value("${app.agent.multi.orchestrator.max-subtasks:10}")
+    private int maxSubtasks;
+
+    @Value("${app.agent.multi.orchestrator.max-concurrent-workers:3}")
+    private int maxConcurrentWorkers;
+
+    public OrchestratorAgent(ChatClient.Builder chatClientBuilder,
+                             List<ToolCallback> tools,
+                             Map<String, AdvisorAgent> agents) {
+        super(chatClientBuilder, tools, "Orchestrator-Agent");
+        this.agents = agents;
+    }
+
+    @Override
+    public String execute(String task) {
+        // 1. 任务分解
+        List<Subtask> subtasks = decompose(task);
+        log.info("Orchestrator 分解出 {} 个子任务", subtasks.size());
+
+        // 2. Worker 分配
+        assignWorkers(subtasks);
+        log.info("Worker 分配完成: {}", subtasks.stream()
+                .map(s -> "[" + s.id + "→" + s.assignedWorker + "]")
+                .collect(Collectors.joining(", ")));
+
+        // 3. 执行子任务
+        executeSubtasks(subtasks);
+        log.info("子任务执行完成");
+
+        // 4. 结果合成
+        return synthesize(task, subtasks);
+    }
+
+    /**
+     * 任务分解 — 将复杂任务拆分为子任务列表。
+     */
+    public List<Subtask> decompose(String task) {
+        // TODO: 实现任务分解逻辑
+        // Step 1: 构建 decompose prompt（参考类注释中的模板）
+        //   String prompt = """
+        //           你是一个任务分解专家...
+        //           原始任务：{task}
+        //           """;
+        //   String fullPrompt = prompt.replace("{task}", task);
+        //
+        // Step 2: 调用 chatClient 获取子任务列表
+        //   String result = chatClient.prompt().user(fullPrompt).call().content();
+        //
+        // Step 3: 解析 LLM 输出的 JSON 数组
+        //   - 提取 [...] 部分
+        //   - 逐个解析每个子任务对象：id, description, dependencies, capability
+        //   - 提示：可以用正则 \\{.*?\\} 匹配每个 JSON 对象，再提取字段
+        //   - 限制数量不超过 maxSubtasks
+        //
+        // Step 4: 如果解析失败或结果为空，返回单个子任务（原始任务本身）
+        //   return List.of(new Subtask(1, task, List.of(), "search"));
+
+        throw new UnsupportedOperationException("TODO: 实现任务分解逻辑");
+    }
+
+    /**
+     * Worker 分配 — 为每个子任务匹配最合适的 Agent。
+     */
+    public void assignWorkers(List<Subtask> subtasks) {
+        // TODO: 实现 Worker 分配逻辑
+        // 根据子任务的 capability 匹配最合适的 Agent：
+        //   "search" → reactAgent
+        //   "reason" / "verify" → reflectionAgent
+        //   "plan" → planAndExecuteAgent
+        //
+        // 提示：可以使用 switch 表达式或 Map 映射
+        //   String worker = switch (subtask.capability) {
+        //       case "reason", "verify" -> "reflectionAgent";
+        //       case "plan" -> "planAndExecuteAgent";
+        //       default -> "reactAgent";
+        //   };
+        //
+        // 如果首选 Worker 不可用，使用 reactAgent 作为兜底
+        //   if (!agents.containsKey(worker)) { worker = "reactAgent"; }
+        //
+        // 设置 subtask.assignedWorker = worker;
+
+        throw new UnsupportedOperationException("TODO: 实现 Worker 分配逻辑");
+    }
+
+    /**
+     * 执行子任务 — 独立子任务并行，依赖子任务顺序执行。
+     */
+    public void executeSubtasks(List<Subtask> subtasks) {
+        // TODO: 实现子任务执行逻辑
+        // Step 1: 分离独立子任务（dependencies 为空）和依赖子任务
+        //   List<Subtask> independent = subtasks.stream()
+        //       .filter(s -> s.dependencies.isEmpty()).toList();
+        //   List<Subtask> dependent = subtasks.stream()
+        //       .filter(s -> !s.dependencies.isEmpty()).toList();
+        //
+        // Step 2: 并行执行独立子任务
+        //   使用 ExecutorService（最多 maxConcurrentWorkers 个线程）：
+        //   ExecutorService executor = Executors.newFixedThreadPool(maxConcurrentWorkers);
+        //   对每个独立子任务提交 executor.submit(() -> executeSingleSubtask(subtask))
+        //   等待所有 Future 完成（设置超时，如 60 秒）
+        //
+        // Step 3: 顺序执行依赖子任务
+        //   for (Subtask subtask : dependent) {
+        //       executeSingleSubtask(subtask);
+        //   }
+        //
+        // Step 4: executeSingleSubtask 的实现：
+        //   - 从 agents Map 获取 worker
+        //   - 构建输入（包含依赖子任务的结果）
+        //   - 调用 worker.execute(input)
+        //   - 记录结果和状态（COMPLETED / FAILED）
+
+        throw new UnsupportedOperationException("TODO: 实现子任务执行逻辑");
+    }
+
+    /**
+     * 结果合成 — 汇总所有子任务结果，生成最终答案。
+     */
+    public String synthesize(String task, List<Subtask> subtasks) {
+        // TODO: 实现结果合成逻辑
+        // Step 1: 构建子任务结果汇总文本
+        //   StringBuilder sb = new StringBuilder();
+        //   for (Subtask s : subtasks) {
+        //       sb.append("子任务 ").append(s.id)
+        //         .append(" [").append(s.status).append("]: ")
+        //         .append(s.result != null ? s.result : "无结果")
+        //         .append("\n---\n");
+        //   }
+        //
+        // Step 2: 构建 synthesize prompt
+        //   String prompt = """
+        //       根据以下子任务执行结果，回答原始问题。
+        //       原始问题：{task}
+        //       子任务结果：
+        //       {results}
+        //       请综合以上结果，给出完整、准确的最终答案。
+        //       """;
+        //
+        // Step 3: 调用 chatClient 生成最终答案
+        //   String fullPrompt = prompt.replace("{task}", task)
+        //       .replace("{results}", sb.toString());
+        //   return chatClient.prompt().user(fullPrompt).call().content();
+
+        throw new UnsupportedOperationException("TODO: 实现结果合成逻辑");
+    }
+
+    /**
+     * 子任务定义 — 内部 DTO。
+     */
+    public static class Subtask {
+        public int id;
+        public String description;
+        public List<Integer> dependencies;
+        public String capability;
+        public String assignedWorker;
+        public String status;
+        public String result;
+
+        public Subtask(int id, String description, List<Integer> dependencies, String capability) {
+            this.id = id;
+            this.description = description;
+            this.dependencies = dependencies;
+            this.capability = capability;
+            this.status = "PENDING";
+        }
+
+        @Override
+        public String toString() {
+            return "Subtask{id=" + id + ", description='" + description + "', status=" + status + "}";
+        }
+    }
+}
