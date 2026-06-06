@@ -156,6 +156,9 @@ public class ReActLoop {
 
         log.info("ReAct执行完成，执行链：");
         log.info(parseReActStep(history));
+        if (history.isEmpty()) {
+            return "ReAct 执行失败：未能生成有效答案";
+        }
         return history.getLast().finalAnswer;
     }
 
@@ -212,6 +215,10 @@ public class ReActLoop {
      */
     public String executeTool(String action, String actionInput) {
         ToolCallback toolCallback = toolMap.get(action);
+        if (toolCallback == null) {
+            log.error("工具 {} 不存在", action);
+            return "工具 " + action + " 不存在";
+        }
         String result;
         try {
             result = toolCallback.call(actionInput);

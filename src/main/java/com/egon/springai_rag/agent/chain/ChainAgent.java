@@ -2,6 +2,7 @@ package com.egon.springai_rag.agent.chain;
 
 import com.egon.springai_rag.agent.AbstractAgent;
 import com.egon.springai_rag.agent.AdvisorAgent;
+import com.egon.springai_rag.agent.WorkerAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallback;
@@ -47,7 +48,7 @@ public class ChainAgent extends AbstractAgent {
 
     public ChainAgent(ChatClient.Builder chatClientBuilder,
                       List<ToolCallback> tools,
-                      Map<String, AdvisorAgent> agents) {
+                      @WorkerAgent Map<String, AdvisorAgent> agents) {
         super(chatClientBuilder, tools, "Chain-Agent");
         this.agents = agents;
     }
@@ -65,7 +66,7 @@ public class ChainAgent extends AbstractAgent {
      * @return 最终答案
      */
     public String execute(String task, List<String> agentChain) {
-        // TODO: 实现 Chain 执行逻辑
+        // 实现 Chain 执行逻辑
         // Step 1: 验证链 — 过滤掉不存在的 Agent、限制链长度
         //   List<String> validChain = new ArrayList<>();
         //   for (String name : agentChain) {
@@ -97,17 +98,33 @@ public class ChainAgent extends AbstractAgent {
         // Step 4: 返回最后阶段的输出
         //   return currentInput;
 
-        throw new UnsupportedOperationException("TODO: 实现 Chain 执行逻辑");
-    }
+        List<String> validChain = new ArrayList<>();
+        for (String name : agentChain) {
+            if (agents.containsKey(name) && !validChain.contains(name)) {
+                validChain.add(name);
+            }
+            if (validChain.size() >= maxChainLength) break;
+        }
+        if (validChain.isEmpty()) { return "链执行失败：没有可用的 Agent"; }
 
-    /**
-     * 链阶段记录 — 内部 DTO。
-     */
-    public record ChainStage(
-            String agent,
-            String input,
-            String output,
-            long durationMs,
-            String status
-    ) {}
+        String currentInput = task;
+
+        for (String agentName : validChain) {
+            AdvisorAgent agent = agents.get(agentName);
+            long start = System.currentTimeMillis();
+            try {
+                String output = agent.execute(currentInput);
+                long duration = System.currentTimeMillis() - start;
+                log.info("阶段 {} 完成, 耗时 {}ms", agentName, duration);
+                // 【关键】当前输出作为下一阶段的输入
+                currentInput = output;
+            } catch (Exception e) {
+                // 【决策点】失败时应该终止链还是跳过继续？
+                log.error("阶段 {} 失败", agentName, e);
+                return "链执行在阶段 " + agentName + " 失败：" + e.getMessage();
+            }
+        }
+
+        return currentInput;
+    }
 }

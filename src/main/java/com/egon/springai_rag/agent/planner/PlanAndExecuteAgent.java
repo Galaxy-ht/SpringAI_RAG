@@ -1,6 +1,7 @@
 package com.egon.springai_rag.agent.planner;
 
 import com.egon.springai_rag.agent.AbstractAgent;
+import com.egon.springai_rag.agent.WorkerAgent;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -56,6 +57,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component("planAndExecuteAgent")
+@WorkerAgent
 public class PlanAndExecuteAgent extends AbstractAgent {
 
     @Value("${app.agent.planner.max-steps:5}")
@@ -114,7 +116,7 @@ public class PlanAndExecuteAgent extends AbstractAgent {
                  Step 1: [工具名] [工具调用参数]
                  Step 2: [工具名] [工具调用参数]
                  ...
-                 其中[工具调用参数]中的内容应该是按工具列表定义中的格式化工具入参
+                 其中[工具调用参数]中的内容应该是按工具列表定义中的JSON对象格式
                  如果工具不需要入参，则置为 {}
                 
                 

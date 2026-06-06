@@ -1,6 +1,7 @@
 package com.egon.springai_rag.agent.config;
 
 import com.egon.springai_rag.agent.AdvisorAgent;
+import com.egon.springai_rag.agent.WorkerAgent;
 import com.egon.springai_rag.agent.chain.ChainAgent;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,9 +26,12 @@ import java.util.Map;
 public class CollaborationController {
 
     private final Map<String, AdvisorAgent> agents;
+    private final Map<String, AdvisorAgent> workerAgents;
 
-    public CollaborationController(Map<String, AdvisorAgent> agents) {
+    public CollaborationController(Map<String, AdvisorAgent> agents,
+                                   @WorkerAgent Map<String, AdvisorAgent> workerAgents) {
         this.agents = agents;
+        this.workerAgents = workerAgents;
     }
 
     /**
@@ -97,11 +101,7 @@ public class CollaborationController {
      */
     @GetMapping("/collaboration/info")
     public Map<String, Object> collaborationInfo() {
-        List<String> availableWorkers = agents.keySet().stream()
-                .filter(k -> !k.contains("Agent") || k.equals("reactAgent")
-                        || k.equals("reflectionAgent") || k.equals("planAndExecuteAgent"))
-                .sorted()
-                .toList();
+        List<String> availableWorkers = workerAgents.keySet().stream().sorted().toList();
 
         return Map.of(
                 "patterns", List.of("router", "chain", "orchestrate"),

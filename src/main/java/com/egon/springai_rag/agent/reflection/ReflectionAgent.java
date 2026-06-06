@@ -1,6 +1,7 @@
 package com.egon.springai_rag.agent.reflection;
 
 import com.egon.springai_rag.agent.AbstractAgent;
+import com.egon.springai_rag.agent.WorkerAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
@@ -57,9 +58,8 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component("reflectionAgent")
+@WorkerAgent
 public class ReflectionAgent extends AbstractAgent {
-
-    private final ChatClient critiqueClient;
 
     @Value("${app.agent.reflection.max-retries:3}")
     private int maxRetries;
@@ -67,7 +67,6 @@ public class ReflectionAgent extends AbstractAgent {
     public ReflectionAgent(ChatClient.Builder chatClientBuilder,
                            List<ToolCallback> tools) {
         super(chatClientBuilder, tools, "Reflection-Agent");
-        this.critiqueClient = chatClientBuilder.build();
     }
 
     @Override
@@ -87,7 +86,7 @@ public class ReflectionAgent extends AbstractAgent {
         if (StringUtils.isBlank(answer)) {
             throw new IllegalStateException("请稍后再试");
         }
-        int retries = 1;
+        int retries = 0;
 
         String prompt = """
                 请根据当前用户问题、当前答案与答案修改建议，重新生成优化答案
@@ -97,8 +96,8 @@ public class ReflectionAgent extends AbstractAgent {
                 """;
 
         while (true) {
-            if (retries ==  maxRetries) {
-                return  answer;
+            if (retries >= maxRetries) {
+                return answer;
             }
             log.info("第{}轮答案：{}", retries, answer);
 
@@ -162,7 +161,7 @@ public class ReflectionAgent extends AbstractAgent {
                  Suggestions: [改进建议]
                 """;
         String fullPrompt = critiquePrompt.replace("{task}", task).replace("{currentAnswer}", currentAnswer);
-        String content = critiqueClient.prompt().user(fullPrompt).call().content();
+        String content = chatClient.prompt().user(fullPrompt).call().content();
         log.info("critique生成：{}", content);
         if (StringUtils.isBlank(content)) {
             throw new IllegalStateException("请稍后再试");

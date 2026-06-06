@@ -35,7 +35,7 @@ public class ToolDefinitions {
     public static ToolCallback ragSearchTool(HybridRetrievalService hybridRetrievalService) {
         return FunctionToolCallback
                 .builder("rag_search", (RagSearchInput input) -> {
-                    log.info("调用RAG搜索工具");
+                    log.info("调用RAG搜索工具：{}", input);
                     List<ScoredDocument> results = hybridRetrievalService.search(
                             input.query(), 5, "bm25", "rrf");
                     if (results.isEmpty()) {
@@ -57,7 +57,7 @@ public class ToolDefinitions {
         return FunctionToolCallback
                 .builder("calculator", (CalculatorInput input) -> {
                     try {
-                        log.info("调用计算工具");
+                        log.info("调用计算工具: {}", input);
                         double result = new ExpressionBuilder(input.expression())
                                 .build()
                                 .evaluate();

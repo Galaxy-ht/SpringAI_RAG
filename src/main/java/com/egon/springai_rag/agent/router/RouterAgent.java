@@ -2,6 +2,7 @@ package com.egon.springai_rag.agent.router;
 
 import com.egon.springai_rag.agent.AbstractAgent;
 import com.egon.springai_rag.agent.AdvisorAgent;
+import com.egon.springai_rag.agent.WorkerAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallback;
@@ -53,7 +54,7 @@ public class RouterAgent extends AbstractAgent {
 
     public RouterAgent(ChatClient.Builder chatClientBuilder,
                        List<ToolCallback> tools,
-                       Map<String, AdvisorAgent> agents) {
+                       @WorkerAgent Map<String, AdvisorAgent> agents) {
         super(chatClientBuilder, tools, "Router-Agent");
         this.agents = agents;
     }

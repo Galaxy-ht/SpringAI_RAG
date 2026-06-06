@@ -1,6 +1,7 @@
 package com.egon.springai_rag.agent.react;
 
 import com.egon.springai_rag.agent.AbstractAgent;
+import com.egon.springai_rag.agent.WorkerAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
@@ -35,6 +36,7 @@ import java.util.List;
  */
 @Slf4j
 @Component("reactAgent")
+@WorkerAgent
 public class ReActAgent extends AbstractAgent {
 
     private final ReActLoop reActLoop;
