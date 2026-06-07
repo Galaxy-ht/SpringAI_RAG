@@ -46,7 +46,22 @@ spring:
         collection-name: spring_ai_rag
       elasticsearch:
         index-name: spring_ai_rag
-
+    mcp:
+      server:
+        name: "SpringAI-RAG-MCP-Server"
+        version: "1.0.0"
+        protocol: STREAMABLE
+        instructions: "该 MCP Server 提供 RAG 知识库搜索、数学计算、日期时间查询等工具"
+      client:
+        name: "SpringAI-RAG-MCP-Client"
+        version: "1.0.0"
+        request-timeout: 30s
+        streamable-http:
+          connections:
+            # 示例：连接到外部 MCP Server（如 filesystem、web-search 等）
+            # 取消注释并修改 URL 以连接到实际的 MCP Server
+             filesystem:
+               url: http://localhost:8000/mcp
 # 应用自定义配置
 app:
   embedding:
