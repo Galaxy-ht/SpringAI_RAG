@@ -9,10 +9,14 @@ spring:
     uris: http://localhost:9200
     username: elastic
     password: 123456
+  mvc:
+    async:
+      request-timeout: 5m
   ai:
     openai:
       api-key: ${DEEPSEEK_API_KEY}
       base-url: ${DEEPSEEK_BASE_URL}
+      timeout: 5m
       chat:
         model: deepseek-v4-pro
         temperature: 0.3
@@ -96,3 +100,19 @@ app:
       orchestrator:
         max-subtasks: 10
         max-concurrent-workers: 3
+  text2sql:
+    schema: public
+    allowed-tables:
+      - departments
+      - employees
+      - salaries
+      - projects
+      - employee_projects
+    max-rows: 100
+    fewshot:
+      top-k: 3
+
+server:
+  tomcat:
+    connection-timeout: 5m
+    keep-alive-timeout: 5m

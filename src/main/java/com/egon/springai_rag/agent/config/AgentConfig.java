@@ -1,5 +1,6 @@
 package com.egon.springai_rag.agent.config;
 
+import com.egon.springai_rag.agent.text2sql.Text2SqlTool;
 import com.egon.springai_rag.agent.tools.ToolDefinitions;
 import com.egon.springai_rag.retrieval.HybridRetrievalService;
 import org.springframework.ai.tool.ToolCallback;
@@ -23,12 +24,16 @@ public class AgentConfig {
      * 新增工具时只需在此方法中添加即可，所有 Agent 自动获得新工具。
      */
     @Bean
-    public List<ToolCallback> agentTools(HybridRetrievalService hybridRetrievalService) {
+    public List<ToolCallback> agentTools(HybridRetrievalService hybridRetrievalService,
+                                          Text2SqlTool text2SqlTool) {
         return List.of(
-                // 【优化】移除未使用的 VectorStore 参数，ragSearchTool 仅依赖 HybridRetrievalService
+                // P1-P4: RAG 检索管道
                 ToolDefinitions.ragSearchTool(hybridRetrievalService),
+                // P5: 基础工具
                 ToolDefinitions.calculatorTool(),
-                ToolDefinitions.dateTimeTool()
+                ToolDefinitions.dateTimeTool(),
+                // P8: text2SQL — 自然语言查询数据库
+                text2SqlTool.createToolCallback()
         );
     }
 }
